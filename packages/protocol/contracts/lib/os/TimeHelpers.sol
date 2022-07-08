@@ -1,7 +1,8 @@
 // Brought from https://github.com/aragon/aragonOS/blob/v4.3.0/contracts/common/TimeHelpers.sol
-// Adapted to use pragma ^0.5.8 and satisfy our linter rules
+// Adapted to use pragma 0.8.6 and satisfy our linter rules
 
-pragma solidity ^0.5.8;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity 0.8.6;
 
 import "./Uint256Helpers.sol";
 
@@ -14,7 +15,7 @@ contract TimeHelpers {
     *      Using a function rather than `block.number` allows us to easily mock the block number in
     *      tests.
     */
-    function getBlockNumber() internal view returns (uint256) {
+    function getBlockNumber() internal view virtual returns (uint256) {
         return block.number;
     }
 
@@ -32,7 +33,7 @@ contract TimeHelpers {
     *      Using a function rather than `block.timestamp` allows us to easily mock it in
     *      tests.
     */
-    function getTimestamp() internal view returns (uint256) {
+    function getTimestamp() internal view virtual returns (uint256) {
         return block.timestamp; // solium-disable-line security/no-block-members
     }
 

@@ -1,10 +1,9 @@
 // Copied from https://github.com/OpenZeppelin/openzeppelin-solidity/blob/a9f910d34f0ab33a1ae5e714f69f9596a02b4d91/contracts/token/ERC20/StandardToken.sol
 
-pragma solidity 0.5.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity 0.8.6;
 
 import "../../standards/IERC20.sol";
-import "../../lib/os/SafeMath.sol";
-
 
 /**
  * @title Standard ERC20 token
@@ -13,7 +12,6 @@ import "../../lib/os/SafeMath.sol";
  * https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
  */
 contract StandardTokenMock is IERC20 {
-    using SafeMath for uint256;
 
     mapping (address => uint256) private balances;
 
@@ -21,20 +19,20 @@ contract StandardTokenMock is IERC20 {
 
     uint256 private totalSupply_;
 
-    constructor(address initialAccount, uint256 initialBalance) public {
+    constructor(address initialAccount, uint256 initialBalance) {
         balances[initialAccount] = initialBalance;
         totalSupply_ = initialBalance;
     }
 
     function mint (address account, uint256 amount) public {
-        balances[account] = balances[account].add(amount);
-        totalSupply_ = totalSupply_.add(amount);
+        balances[account] = balances[account] + amount;
+        totalSupply_ = totalSupply_ + amount;
     }
 
     /**
      * @dev Total number of tokens in existence
      */
-    function totalSupply() public view returns (uint256) {
+    function totalSupply() public view override returns (uint256) {
         return totalSupply_;
     }
 
@@ -43,7 +41,7 @@ contract StandardTokenMock is IERC20 {
      * @param _owner The address to query the the balance of.
      * @return An uint256 representing the amount owned by the passed address.
      */
-    function balanceOf(address _owner) public view returns (uint256) {
+    function balanceOf(address _owner) public view override returns (uint256) {
         return balances[_owner];
     }
 
@@ -59,6 +57,7 @@ contract StandardTokenMock is IERC20 {
     )
         public
         view
+        override
         returns (uint256)
     {
         return allowed[_owner][_spender];
@@ -69,12 +68,12 @@ contract StandardTokenMock is IERC20 {
      * @param _to The address to transfer to.
      * @param _value The amount to be transferred.
      */
-    function transfer(address _to, uint256 _value) public returns (bool) {
+    function transfer(address _to, uint256 _value) public override returns (bool) {
         require(_value <= balances[msg.sender]);
         require(_to != address(0));
 
-        balances[msg.sender] = balances[msg.sender].sub(_value);
-        balances[_to] = balances[_to].add(_value);
+        balances[msg.sender] = balances[msg.sender] - _value;
+        balances[_to] = balances[_to] + _value;
         emit Transfer(msg.sender, _to, _value);
         return true;
     }
@@ -88,7 +87,7 @@ contract StandardTokenMock is IERC20 {
      * @param _spender The address which will spend the funds.
      * @param _value The amount of tokens to be spent.
      */
-    function approve(address _spender, uint256 _value) public returns (bool) {
+    function approve(address _spender, uint256 _value) public override returns (bool) {
         allowed[msg.sender][_spender] = _value;
         emit Approval(msg.sender, _spender, _value);
         return true;
@@ -106,15 +105,16 @@ contract StandardTokenMock is IERC20 {
         uint256 _value
     )
         public
+        override
         returns (bool)
     {
         require(_value <= balances[_from]);
         require(_value <= allowed[_from][msg.sender]);
         require(_to != address(0));
 
-        balances[_from] = balances[_from].sub(_value);
-        balances[_to] = balances[_to].add(_value);
-        allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
+        balances[_from] = balances[_from] - _value;
+        balances[_to] = balances[_to] + _value;
+        allowed[_from][msg.sender] = allowed[_from][msg.sender] - _value;
         emit Transfer(_from, _to, _value);
         return true;
     }
@@ -136,7 +136,7 @@ contract StandardTokenMock is IERC20 {
         returns (bool)
     {
         allowed[msg.sender][_spender] = (
-            allowed[msg.sender][_spender].add(_addedValue));
+            allowed[msg.sender][_spender] + _addedValue);
         emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
         return true;
     }
@@ -161,7 +161,7 @@ contract StandardTokenMock is IERC20 {
         if (_subtractedValue >= oldValue) {
             allowed[msg.sender][_spender] = 0;
         } else {
-            allowed[msg.sender][_spender] = oldValue.sub(_subtractedValue);
+            allowed[msg.sender][_spender] = oldValue - _subtractedValue;
         }
         emit Approval(msg.sender, _spender, allowed[msg.sender][_spender]);
         return true;
@@ -176,8 +176,8 @@ contract StandardTokenMock is IERC20 {
      */
     function _mint(address _account, uint256 _amount) internal {
         require(_account != address(0));
-        totalSupply_ = totalSupply_.add(_amount);
-        balances[_account] = balances[_account].add(_amount);
+        totalSupply_ = totalSupply_ + _amount;
+        balances[_account] = balances[_account] + _amount;
         emit Transfer(address(0), _account, _amount);
     }
 
@@ -191,8 +191,8 @@ contract StandardTokenMock is IERC20 {
         require(_account != address(0));
         require(_amount <= balances[_account]);
 
-        totalSupply_ = totalSupply_.sub(_amount);
-        balances[_account] = balances[_account].sub(_amount);
+        totalSupply_ = totalSupply_ - _amount;
+        balances[_account] = balances[_account] - _amount;
         emit Transfer(_account, address(0), _amount);
     }
 
@@ -208,7 +208,7 @@ contract StandardTokenMock is IERC20 {
 
         // Should https://github.com/OpenZeppelin/zeppelin-solidity/issues/707 be accepted,
         // this function needs to emit an event with the updated approval.
-        allowed[_account][msg.sender] = allowed[_account][msg.sender].sub(_amount);
+        allowed[_account][msg.sender] = allowed[_account][msg.sender] - _amount;
         _burn(_account, _amount);
     }
 }

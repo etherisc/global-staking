@@ -1,7 +1,4 @@
-// Brought from https://github.com/aragon/aragonOS/blob/v4.3.0/contracts/common/SafeERC20.sol
-// Adapted to use pragma ^0.5.8 and satisfy our linter rules
-
-pragma solidity ^0.5.8;
+pragma solidity 0.8.6;
 
 import "../../standards/IERC20.sol";
 
@@ -57,18 +54,18 @@ library SafeERC20 {
             let ptr := mload(0x40)    // free memory pointer
 
             let success := call(
-                gas,                  // forward all gas
-                _addr,                // address
-                0,                    // no value
-                add(_calldata, 0x20), // calldata start
-                mload(_calldata),     // calldata length
-                ptr,                  // write output over free memory
-                0x20                  // uint256 return
+            gas(),                  // forward all gas
+            _addr,                // address
+            0,                    // no value
+            add(_calldata, 0x20), // calldata start
+            mload(_calldata),     // calldata length
+            ptr,                  // write output over free memory
+            0x20                  // uint256 return
             )
 
             if gt(success, 0) {
             // Check number of bytes returned from last function call
-                switch returndatasize
+                switch returndatasize()
 
                 // No bytes returned: assume success
                 case 0 {

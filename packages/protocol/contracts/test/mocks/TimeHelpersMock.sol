@@ -1,13 +1,11 @@
-pragma solidity ^0.5.17;
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity 0.8.6;
 
 import "../../lib/os/TimeHelpers.sol";
-import "../..//lib/os/SafeMath.sol";
-import "../..//lib/os/SafeMath64.sol";
 
 
 contract TimeHelpersMock is TimeHelpers {
-    using SafeMath for uint256;
-    using SafeMath64 for uint64;
 
     uint256 public mockedTimestamp;
     uint256 public mockedBlockNumber;
@@ -23,24 +21,24 @@ contract TimeHelpersMock is TimeHelpers {
     * @dev Increases the mocked timestamp value, used only for testing purposes
     */
     function mockIncreaseTime(uint256 _seconds) external {
-        if (mockedTimestamp != 0) mockedTimestamp = mockedTimestamp.add(_seconds);
-        else mockedTimestamp = block.timestamp.add(_seconds);
+        if (mockedTimestamp != 0) mockedTimestamp = mockedTimestamp + _seconds;
+        else mockedTimestamp = block.timestamp + _seconds;
     }
 
     /**
     * @dev Decreases the mocked timestamp value, used only for testing purposes
     */
     function mockDecreaseTime(uint256 _seconds) external {
-        if (mockedTimestamp != 0) mockedTimestamp = mockedTimestamp.sub(_seconds);
-        else mockedTimestamp = block.timestamp.sub(_seconds);
+        if (mockedTimestamp != 0) mockedTimestamp = mockedTimestamp - _seconds;
+        else mockedTimestamp = block.timestamp - _seconds;
     }
 
     /**
     * @dev Advances the mocked block number value, used only for testing purposes
     */
     function mockAdvanceBlocks(uint256 _number) external {
-        if (mockedBlockNumber != 0) mockedBlockNumber = mockedBlockNumber.add(_number);
-        else mockedBlockNumber = block.number.add(_number);
+        if (mockedBlockNumber != 0) mockedBlockNumber = mockedBlockNumber + _number;
+        else mockedBlockNumber = block.number + _number;
     }
 
     /**
@@ -57,19 +55,4 @@ contract TimeHelpersMock is TimeHelpers {
         return getBlockNumber();
     }
 
-    /**
-    * @dev Returns the mocked timestamp if it was set, or current `block.timestamp`
-    */
-    function getTimestamp() internal view returns (uint256) {
-        if (mockedTimestamp != 0) return mockedTimestamp;
-        return super.getTimestamp();
-    }
-
-    /**
-    * @dev Returns the mocked block number if it was set, or current `block.number`
-    */
-    function getBlockNumber() internal view returns (uint256) {
-        if (mockedBlockNumber != 0) return mockedBlockNumber;
-        return super.getBlockNumber();
-    }
 }

@@ -1,6 +1,7 @@
 // See MiniMe token (https://github.com/Giveth/minime/blob/master/contracts/MiniMeToken.sol)
 
-pragma solidity ^0.5.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity 0.8.6;
 
 
 interface IApproveAndCallFallBack {

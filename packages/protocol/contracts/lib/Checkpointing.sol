@@ -1,12 +1,12 @@
-pragma solidity ^0.5.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity 0.8.6;
 
 
 /**
 * @title Checkpointing - Library to handle a historic set of numeric values
 */
 library Checkpointing {
-    uint256 private constant MAX_UINT192 = uint256(uint192(-1));
-
+    uint256 private constant MAX_UINT192 = 2**192-1;
     string private constant ERROR_VALUE_TOO_BIG = "CHECKPOINT_VALUE_TOO_BIG";
     string private constant ERROR_CANNOT_ADD_PAST_VALUE = "CHECKPOINT_CANNOT_ADD_PAST_VALUE";
 

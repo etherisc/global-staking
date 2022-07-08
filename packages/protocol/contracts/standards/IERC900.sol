@@ -1,4 +1,5 @@
-pragma solidity ^0.5.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity 0.8.6;
 
 
 // Interface for ERC900: https://eips.ethereum.org/EIPS/eip-900
@@ -45,7 +46,7 @@ interface IERC900 {
      * @dev Tell the address of the staking token
      * @return Address of the staking token
      */
-    function token() external view returns (address);
+    // function token() external view returns (address);
 
     /*
      * @dev Tell if the optional history functions are implemented

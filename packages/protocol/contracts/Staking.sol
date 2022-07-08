@@ -1,14 +1,15 @@
-pragma solidity 0.5.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity 0.8.6;
 
 import "./lib/Checkpointing.sol";
 import "./lib/os/IsContract.sol";
-import "./lib/os/SafeMath.sol";
-import "./lib/os/SafeERC20.sol";
 import "./lib/os/TimeHelpers.sol";
+import "./lib/os/SafeERC20.sol";
 
 import "./locking/ILockable.sol";
 import "./locking/ILockManager.sol";
 
+import "./standards/IERC20.sol";
 import "./standards/IERC900.sol";
 import "./standards/IERC900History.sol";
 import "./standards/IApproveAndCallFallBack.sol";
@@ -17,9 +18,8 @@ import "./standards/IApproveAndCallFallBack.sol";
 contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack, IsContract, TimeHelpers {
     using Checkpointing for Checkpointing.History;
     using SafeERC20 for IERC20;
-    using SafeMath for uint256;
 
-    uint256 private constant MAX_UINT64 = uint256(uint64(-1));
+    uint256 private constant MAX_UINT64 = 2**64 - 1;
 
     string private constant ERROR_TOKEN_NOT_CONTRACT = "STAKING_TOKEN_NOT_CONTRACT";
     string private constant ERROR_AMOUNT_ZERO = "STAKING_AMOUNT_ZERO";
@@ -57,7 +57,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @notice Initialize Staking app with token `_token`
      * @param _token ERC20 token used for staking
      */
-    constructor(IERC20 _token) public {
+    constructor(IERC20 _token) {
         require(isContract(address(_token)), ERROR_TOKEN_NOT_CONTRACT);
         token = _token;
     }
@@ -68,7 +68,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _amount Amount of tokens to be staked
      * @param _data Optional data emitted with the Staked event, to add signalling information in more complex staking applications
      */
-    function stake(uint256 _amount, bytes calldata _data) external {
+    function stake(uint256 _amount, bytes calldata _data) external override {
         _stakeFor(msg.sender, msg.sender, _amount, _data);
     }
 
@@ -79,7 +79,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _amount Amount of tokens to be staked
      * @param _data Optional data emitted with the Staked event, to add signalling information in more complex staking applications
      */
-    function stakeFor(address _user, uint256 _amount, bytes calldata _data) external {
+    function stakeFor(address _user, uint256 _amount, bytes calldata _data) external override{
         _stakeFor(msg.sender, _user, _amount, _data);
     }
 
@@ -89,7 +89,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _amount Amount of tokens to be unstaked
      * @param _data Optional data emitted with the Unstaked event, to add signalling information in more complex staking applications
      */
-    function unstake(uint256 _amount, bytes calldata _data) external {
+    function unstake(uint256 _amount, bytes calldata _data) external override {
         // _unstake() expects the caller to do this check
         require(_amount > 0, ERROR_AMOUNT_ZERO);
 
@@ -104,7 +104,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _allowance Amount of tokens the manager will be allowed to lock
      * @param _data Optional, arbitrary data to be submitted to the manager
      */
-    function allowManager(address _lockManager, uint256 _allowance, bytes calldata _data) external {
+    function allowManager(address _lockManager, uint256 _allowance, bytes calldata _data) external override {
         _allowManager(_lockManager, _allowance, _data);
     }
 
@@ -114,7 +114,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _lockManager Lock manager
      * @param _allowance Amount to increase allowance by
      */
-    function increaseLockAllowance(address _lockManager, uint256 _allowance) external {
+    function increaseLockAllowance(address _lockManager, uint256 _allowance) external override {
         Lock storage lock_ = accounts[msg.sender].locks[_lockManager];
         require(lock_.allowance > 0, ERROR_LOCK_DOES_NOT_EXIST);
 
@@ -129,12 +129,12 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _lockManager Lock manager
      * @param _allowance Amount to decrease allowance by
      */
-    function decreaseLockAllowance(address _user, address _lockManager, uint256 _allowance) external {
+    function decreaseLockAllowance(address _user, address _lockManager, uint256 _allowance) external override {
         require(msg.sender == _user || msg.sender == _lockManager, ERROR_CANNOT_CHANGE_ALLOWANCE);
         require(_allowance > 0, ERROR_AMOUNT_ZERO);
 
         Lock storage lock_ = accounts[_user].locks[_lockManager];
-        uint256 newAllowance = lock_.allowance.sub(_allowance);
+        uint256 newAllowance = lock_.allowance - _allowance;
         require(newAllowance >= lock_.amount, ERROR_NOT_ENOUGH_ALLOWANCE);
         // unlockAndRemoveManager() must be used for this:
         require(newAllowance > 0, ERROR_ALLOWANCE_ZERO);
@@ -150,7 +150,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _user Owner of the locked tokens
      * @param _amount Amount of tokens to lock
      */
-    function lock(address _user, uint256 _amount) external {
+    function lock(address _user, uint256 _amount) external override {
         require(_amount > 0, ERROR_AMOUNT_ZERO);
 
         // check enough unlocked tokens are available
@@ -159,14 +159,14 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
         Account storage account = accounts[_user];
         Lock storage lock_ = account.locks[msg.sender];
 
-        uint256 newAmount = lock_.amount.add(_amount);
+        uint256 newAmount = lock_.amount + _amount;
         // check allowance is enough, it also means that lock exists, as newAmount is greater than zero
         require(newAmount <= lock_.allowance, ERROR_NOT_ENOUGH_ALLOWANCE);
 
         lock_.amount = newAmount;
 
         // update total
-        account.totalLocked = account.totalLocked.add(_amount);
+        account.totalLocked = account.totalLocked + _amount;
 
         emit LockAmountChanged(_user, msg.sender, newAmount);
     }
@@ -178,7 +178,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _lockManager Lock manager
      * @param _amount Amount of tokens to unlock
      */
-    function unlock(address _user, address _lockManager, uint256 _amount) external {
+    function unlock(address _user, address _lockManager, uint256 _amount) external override {
         // _unlockUnsafe() expects the caller to do this check
         require(_amount > 0, ERROR_AMOUNT_ZERO);
 
@@ -193,7 +193,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _user Owner of the locked tokens
      * @param _lockManager Lock manager
      */
-    function unlockAndRemoveManager(address _user, address _lockManager) external {
+    function unlockAndRemoveManager(address _user, address _lockManager) external override {
         require(_canUnlockUnsafe(msg.sender, _user, _lockManager, 0), ERROR_CANNOT_UNLOCK);
 
         Account storage account = accounts[_user];
@@ -201,7 +201,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
 
         uint256 amount = lock_.amount;
         // update total
-        account.totalLocked = account.totalLocked.sub(amount);
+        account.totalLocked = account.totalLocked - amount;
 
         emit LockAmountChanged(_user, _lockManager, 0);
         emit LockManagerRemoved(_user, _lockManager);
@@ -216,7 +216,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _to Recipient
      * @param _amount Amount of tokens to be transferred via slashing
      */
-    function slash(address _from, address _to, uint256 _amount) external {
+    function slash(address _from, address _to, uint256 _amount) external override {
         _unlockUnsafe(_from, msg.sender, _amount);
         _transfer(_from, _to, _amount);
     }
@@ -228,7 +228,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _to Recipient
      * @param _amount Amount of tokens to be transferred via slashing
      */
-    function slashAndUnstake(address _from, address _to, uint256 _amount) external {
+    function slashAndUnstake(address _from, address _to, uint256 _amount) external override {
         _unlockUnsafe(_from, msg.sender, _amount);
         _transferAndUnstake(_from, _to, _amount);
     }
@@ -249,7 +249,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
     )
         external
     {
-        _unlockUnsafe(_from, msg.sender, _unlockAmount.add(_slashAmount));
+        _unlockUnsafe(_from, msg.sender, _unlockAmount + _slashAmount);
         _transfer(_from, _to, _slashAmount);
     }
 
@@ -283,7 +283,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _token Token being approved, should be the caller
      * @param _data Optional data emitted with the Staked event, to add signalling information in more complex staking applications
      */
-    function receiveApproval(address _from, uint256 _amount, address _token, bytes calldata _data) external {
+    function receiveApproval(address _from, uint256 _amount, address _token, bytes calldata _data) external override {
         require(_token == msg.sender && _token == address(token), ERROR_WRONG_TOKEN);
 
         _stakeFor(_from, _from, _amount, _data);
@@ -293,7 +293,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @dev Tell whether the history methods are supported
      * @return Always true
      */
-    function supportsHistory() external pure returns (bool) {
+    function supportsHistory() external pure override returns (bool) {
         return true;
     }
 
@@ -302,7 +302,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _user Address
      * @return Last block number the account's staked balance was modified. 0 if it has never been modified.
      */
-    function lastStakedFor(address _user) external view returns (uint256) {
+    function lastStakedFor(address _user) external view override returns (uint256) {
         return accounts[_user].stakedHistory.lastUpdate();
     }
 
@@ -311,7 +311,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _user Address
      * @return Amount of locked tokens owned by the requested account across all locks
      */
-    function lockedBalanceOf(address _user) external view returns (uint256) {
+    function lockedBalanceOf(address _user) external view override returns (uint256) {
         return _lockedBalanceOf(_user);
     }
 
@@ -319,12 +319,13 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @dev Tell details of `_user`'s lock managed by `_lockManager`
      * @param _user Address
      * @param _lockManager Lock manager
-     * @return Amount of locked tokens
-     * @return Amount of tokens that lock manager is allowed to lock
+     * @return amount Amount of locked tokens
+     * @return allowance Amount of tokens that lock manager is allowed to lock
      */
     function getLock(address _user, address _lockManager)
         external
         view
+        override
         returns (
             uint256 amount,
             uint256 allowance
@@ -338,10 +339,10 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
     /**
      * @dev Tell the current staked and locked balances for `_user`
      * @param _user Address
-     * @return Staked balance
-     * @return Locked balance
+     * @return staked Staked balance
+     * @return locked Locked balance
      */
-    function getBalancesOf(address _user) external view returns (uint256 staked, uint256 locked) {
+    function getBalancesOf(address _user) external view override returns (uint256 staked, uint256 locked) {
         staked = _totalStakedFor(_user);
         locked = _lockedBalanceOf(_user);
     }
@@ -351,7 +352,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _user Address
      * @return Staked balance
      */
-    function totalStakedFor(address _user) external view returns (uint256) {
+    function totalStakedFor(address _user) external view override returns (uint256) {
         return _totalStakedFor(_user);
     }
 
@@ -359,7 +360,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @dev Tell the total staked balance from all users
      * @return The total amount of staked tokens from all users
      */
-    function totalStaked() external view returns (uint256) {
+    function totalStaked() external view override returns (uint256) {
         return _totalStaked();
     }
 
@@ -369,7 +370,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _blockNumber Block height
      * @return Staked balance at the given block number
      */
-    function totalStakedForAt(address _user, uint256 _blockNumber) external view returns (uint256) {
+    function totalStakedForAt(address _user, uint256 _blockNumber) external view override returns (uint256) {
         require(_blockNumber <= MAX_UINT64, ERROR_BLOCKNUMBER_TOO_BIG);
 
         return accounts[_user].stakedHistory.get(uint64(_blockNumber));
@@ -380,7 +381,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _blockNumber Block height
      * @return The total amount of staked tokens from all users at the given block number
      */
-    function totalStakedAt(uint256 _blockNumber) external view returns (uint256) {
+    function totalStakedAt(uint256 _blockNumber) external view override returns (uint256) {
         require(_blockNumber <= MAX_UINT64, ERROR_BLOCKNUMBER_TOO_BIG);
 
         return totalStakedHistory.get(uint64(_blockNumber));
@@ -391,7 +392,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _user Address
      * @return Amount of tokens available to be withdrawn
      */
-    function unlockedBalanceOf(address _user) external view returns (uint256) {
+    function unlockedBalanceOf(address _user) external view override returns (uint256) {
         return _unlockedBalanceOf(_user);
     }
 
@@ -403,7 +404,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @param _amount Amount of locked tokens to unlock. If zero, the full locked amount.
      * @return Whether sender is allowed to unlock tokens from the given lock
      */
-    function canUnlock(address _sender, address _user, address _lockManager, uint256 _amount) external view returns (bool) {
+    function canUnlock(address _sender, address _user, address _lockManager, uint256 _amount) external view override returns (bool) {
         return _canUnlockUnsafe(_sender, _user, _lockManager, _amount);
     }
 
@@ -444,10 +445,10 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
 
         uint256 newStake;
         if (_increase) {
-            newStake = currentStake.add(_by);
+            newStake = currentStake + _by;
         } else {
             require(_by <= _unlockedBalanceOf(_user), ERROR_NOT_ENOUGH_BALANCE);
-            newStake = currentStake.sub(_by);
+            newStake = currentStake - _by;
         }
 
         // add new value to account history
@@ -461,9 +462,9 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
 
         uint256 newStake;
         if (_increase) {
-            newStake = currentStake.add(_by);
+            newStake = currentStake + _by;
         } else {
-            newStake = currentStake.sub(_by);
+            newStake = currentStake - _by;
         }
 
         // add new value to total history
@@ -483,7 +484,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
     function _increaseLockAllowance(address _lockManager, Lock storage _lock, uint256 _allowance) internal {
         require(_allowance > 0, ERROR_AMOUNT_ZERO);
 
-        uint256 newAllowance = _lock.allowance.add(_allowance);
+        uint256 newAllowance = _lock.allowance + _allowance;
         _lock.allowance = newAllowance;
 
         emit LockAllowanceChanged(msg.sender, _lockManager, newAllowance);
@@ -501,12 +502,11 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
         require(lockAmount >= _amount, ERROR_NOT_ENOUGH_LOCK);
 
         // update lock amount
-        // No need for SafeMath: checked just above
         uint256 newAmount = lockAmount - _amount;
         lock_.amount = newAmount;
 
         // update total
-        account.totalLocked = account.totalLocked.sub(_amount);
+        account.totalLocked = account.totalLocked - _amount;
 
         emit LockAmountChanged(_user, _lockManager, newAmount);
     }
@@ -538,7 +538,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
         emit Unstaked(_from, _amount, newStake, new bytes(0));
 
         // transfer tokens
-        require(token.safeTransfer(_to, _amount), ERROR_TOKEN_TRANSFER);
+    require(token.safeTransfer(_to, _amount), ERROR_TOKEN_TRANSFER);
     }
 
     function _totalStakedFor(address _user) internal view returns (uint256) {
@@ -552,7 +552,7 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
     }
 
     function _unlockedBalanceOf(address _user) internal view returns (uint256) {
-        return _totalStakedFor(_user).sub(_lockedBalanceOf(_user));
+        return _totalStakedFor(_user) - _lockedBalanceOf(_user);
     }
 
     function _lockedBalanceOf(address _user) internal view returns (uint256) {

@@ -1,7 +1,8 @@
-const { assertRevert } = require('@aragon/contract-helpers-test/assertThrow')
+// const { assertRevert } = require('@aragon/contract-helpers-test/assertThrow')
+const { assertRevert, assertThrows } = require('./helpers/assertThrow')
 const { bn, assertBn, MAX_UINT64 } = require('@aragon/contract-helpers-test/numbers')
 
-const { deploy } = require('./helpers/deploy')(artifacts)
+// const { deploy } = require('./helpers/deploy')(artifacts)
 const { approveAndStake } = require('./helpers/helpers')(artifacts)
 const { DEFAULT_STAKE_AMOUNT, EMPTY_DATA } = require('./helpers/constants')
 const { STAKING_ERRORS } = require('./helpers/errors')
@@ -33,7 +34,7 @@ contract('Staking app', ([owner, other]) => {
   })
 
   it('fails deploying if token is not a contract', async() => {
-    await assertRevert(StakingMock.new(owner), STAKING_ERRORS.ERROR_TOKEN_NOT_CONTRACT)
+    await assertThrows(StakingMock.new(owner), STAKING_ERRORS.ERROR_TOKEN_NOT_CONTRACT)
   })
 
   it('stakes', async () => {
@@ -60,7 +61,7 @@ contract('Staking app', ([owner, other]) => {
     const balance = await getTokenBalance(token, owner)
     const amount = balance.add(bn(1))
     await token.approve(stakingAddress, amount)
-    await assertRevert(staking.stake(amount, EMPTY_DATA), STAKING_ERRORS.ERROR_TOKEN_DEPOSIT)
+    await assertThrows(staking.stake(amount, EMPTY_DATA), STAKING_ERRORS.ERROR_TOKEN_DEPOSIT)
   })
 
   it('stakes for', async () => {
@@ -170,7 +171,7 @@ contract('Staking app', ([owner, other]) => {
       await badStaking.stake(DEFAULT_STAKE_AMOUNT, EMPTY_DATA, { from: owner })
 
       // unstake half of them, fails on token transfer
-      await assertRevert(badStaking.unstake(DEFAULT_STAKE_AMOUNT.div(bn(2)), EMPTY_DATA), STAKING_ERRORS.ERROR_TOKEN_TRANSFER)
+      await assertThrows(badStaking.unstake(DEFAULT_STAKE_AMOUNT.div(bn(2)), EMPTY_DATA), STAKING_ERRORS.ERROR_TOKEN_TRANSFER)
     })
   })
 })

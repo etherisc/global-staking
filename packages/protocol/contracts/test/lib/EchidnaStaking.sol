@@ -1,14 +1,13 @@
-pragma solidity 0.5.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity 0.8.6;
 
 import "../../Staking.sol";
-import "../../lib/os/SafeMath.sol";
 import "../mocks/NoApproveTokenMock.sol";
 
 
 contract EchidnaStaking is Staking {
-    using SafeMath for uint256;
 
-    constructor() public {
+    constructor(IERC20 _token) Staking(_token) {
         token = IERC20(new NoApproveTokenMock(msg.sender, 10 ** 24));
     }
 

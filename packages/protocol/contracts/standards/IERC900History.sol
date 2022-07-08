@@ -1,4 +1,5 @@
-pragma solidity ^0.5.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity 0.8.6;
 
 
 // Interface for ERC900: https://eips.ethereum.org/EIPS/eip-900, optional History methods

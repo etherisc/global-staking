@@ -1,4 +1,5 @@
-pragma solidity 0.5.17;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity 0.8.6;
 
 import "../../locking/ILockManager.sol";
 import "../../Staking.sol";
@@ -27,7 +28,7 @@ contract LockManagerMock is ILockManager {
         _staking.unlockAndRemoveManager(_account, address(this));
     }
 
-    function canUnlock(address, uint256) external view returns (bool) {
+    function canUnlock(address, uint256) external override view returns (bool) {
         return result;
     }
 

@@ -1,12 +1,13 @@
 // Brought from https://github.com/aragon/aragonOS/blob/v4.3.0/contracts/common/Uint256Helpers.sol
-// Adapted to use pragma ^0.5.8 and satisfy our linter rules
+// Adapted to use pragma 0.8.6 and satisfy our linter rules
 
-pragma solidity ^0.5.8;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity 0.8.6;
 
 
 library Uint256Helpers {
-    uint256 private constant MAX_UINT8 = uint8(-1);
-    uint256 private constant MAX_UINT64 = uint64(-1);
+    uint256 private constant MAX_UINT8 = 2**8 - 1;
+    uint256 private constant MAX_UINT64 = 2**64 -1;
 
     string private constant ERROR_UINT8_NUMBER_TOO_BIG = "UINT8_NUMBER_TOO_BIG";
     string private constant ERROR_UINT64_NUMBER_TOO_BIG = "UINT64_NUMBER_TOO_BIG";

@@ -1,7 +1,7 @@
-// Brought from https://github.com/aragon/aragonOS/blob/v4.3.0/contracts/common/IsContract.sol
-// Adapted to use pragma ^0.5.8 and satisfy our linter rules
+// SPDX-License-Identifier: Apache-2.0
 
-pragma solidity ^0.5.8;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.6;
 
 
 contract IsContract {
@@ -12,13 +12,7 @@ contract IsContract {
     * This is only intended to be used as a sanity check that an address is actually a contract,
     * RATHER THAN an address not being a contract.
     */
-    function isContract(address _target) internal view returns (bool) {
-        if (_target == address(0)) {
-            return false;
-        }
-
-        uint256 size;
-        assembly { size := extcodesize(_target) }
-        return size > 0;
+    function isContract(address _target) public view returns (bool) {
+        return _target.code.length > 0;
     }
 }
