@@ -66,7 +66,8 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @notice Stake `@tokenAmount(self.token(): address, _amount)`
      * @dev Callable only by a user
      * @param _amount Amount of tokens to be staked
-     * @param _data Optional data emitted with the Staked event, to add signalling information in more complex staking applications
+     * @param _data Optional data emitted with the Staked event,
+     *        to add signalling information in more complex staking applications
      */
     function stake(uint256 _amount, bytes calldata _data) external override {
         _stakeFor(msg.sender, msg.sender, _amount, _data);
@@ -77,7 +78,8 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @dev Callable only by a user
      * @param _user Address to stake tokens to
      * @param _amount Amount of tokens to be staked
-     * @param _data Optional data emitted with the Staked event, to add signalling information in more complex staking applications
+     * @param _data Optional data emitted with the Staked event,
+     *        to add signalling information in more complex staking applications
      */
     function stakeFor(address _user, uint256 _amount, bytes calldata _data) external override{
         _stakeFor(msg.sender, _user, _amount, _data);
@@ -87,7 +89,8 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
      * @notice Unstake `@tokenAmount(self.token(): address, _amount)`
      * @dev Callable only by a user
      * @param _amount Amount of tokens to be unstaked
-     * @param _data Optional data emitted with the Unstaked event, to add signalling information in more complex staking applications
+     * @param _data Optional data emitted with the Unstaked event,
+     *        to add signalling information in more complex staking applications
      */
     function unstake(uint256 _amount, bytes calldata _data) external override {
         // _unstake() expects the caller to do this check
@@ -173,7 +176,8 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
 
     /**
      * @notice Unlock `@tokenAmount(self.token(): address, _amount)` from lock manager `_lockManager`
-     * @dev Callable only by the user or lock manager. If called by the user, checks with the lock manager whether the request should be allowed.
+     * @dev Callable only by the user or lock manager. If called by the user,
+     *      checks with the lock manager whether the request should be allowed.
      * @param _user Owner of the locked tokens
      * @param _lockManager Lock manager
      * @param _amount Amount of tokens to unlock
@@ -189,7 +193,8 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
 
     /**
      * @notice Unlock all tokens from lock manager `_lockManager` and remove them as a manager
-     * @dev Callable only by the user or lock manager. If called by the user, checks with the lock manager whether the request should be allowed.
+     * @dev Callable only by the user or lock manager. If called by the user,
+     *      checks with the lock manager whether the request should be allowed.
      * @param _user Owner of the locked tokens
      * @param _lockManager Lock manager
      */
@@ -210,7 +215,8 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
     }
 
     /**
-     * @notice Slash `@tokenAmount(self.token(): address, _amount)` from `_from`'s locked balance to `_to`'s staked balance
+     * @notice Slash `@tokenAmount(self.token(): address, _amount)`
+     *         from `_from`'s locked balance to `_to`'s staked balance
      * @dev Callable only by a lock manager
      * @param _from Owner of the locked tokens
      * @param _to Recipient
@@ -222,7 +228,8 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
     }
 
     /**
-     * @notice Slash `@tokenAmount(self.token(): address, _amount)` from `_from`'s locked balance  directly to `_to`'s balance
+     * @notice Slash `@tokenAmount(self.token(): address, _amount)`
+     *         from `_from`'s locked balance  directly to `_to`'s balance
      * @dev Callable only by a lock manager
      * @param _from Owner of the locked tokens
      * @param _to Recipient
@@ -234,7 +241,9 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
     }
 
     /**
-     * @notice Slash `@tokenAmount(self.token(): address, _slashAmount)` from `_from`'s locked balance to `_to`'s staked balance, and leave an additional `@tokenAmount(self.token(): address, _unlockAmount)` unlocked for `_from`
+     * @notice Slash `@tokenAmount(self.token(): address, _slashAmount)` from `_from`'s locked balance to `_to`'s
+     *         staked balance, and leave an additional `@tokenAmount(self.token():
+     *         address, _unlockAmount)` unlocked for `_from`
      * @dev Callable only by a lock manager
      * @param _from Owner of the locked tokens
      * @param _to Recipient
@@ -274,14 +283,14 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
     }
 
     /**
-    /**
      * @dev ApproveAndCallFallBack compliance.
      *      Stakes the approved tokens for the user, allowing users to stake their tokens in a single transaction.
      *      Callable only by the staking token.
      * @param _from Account approving tokens
      * @param _amount Amount of tokens being approved
      * @param _token Token being approved, should be the caller
-     * @param _data Optional data emitted with the Staked event, to add signalling information in more complex staking applications
+     * @param _data Optional data emitted with the Staked event, to add signalling
+     *        information in more complex staking applications
      */
     function receiveApproval(address _from, uint256 _amount, address _token, bytes calldata _data) external override {
         require(_token == msg.sender && _token == address(token), ERROR_WRONG_TOKEN);
@@ -397,14 +406,17 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
     }
 
     /**
-     * @dev Check if `_sender` can unlock `@tokenAmount(self.token(): address, _amount)` from `_user`'s lock managed by `_lockManager`
+     * @dev Check if `_sender` can unlock `@tokenAmount(self.token(): address, _amount)`
+     *      from `_user`'s lock managed by `_lockManager`
      * @param _sender Address that would try to unlock tokens
      * @param _user Owner of lock
      * @param _lockManager Lock manager
      * @param _amount Amount of locked tokens to unlock. If zero, the full locked amount.
      * @return Whether sender is allowed to unlock tokens from the given lock
      */
-    function canUnlock(address _sender, address _user, address _lockManager, uint256 _amount) external view override returns (bool) {
+    function canUnlock(address _sender, address _user, address _lockManager, uint256 _amount)
+        external view override
+        returns (bool) {
         return _canUnlockUnsafe(_sender, _user, _lockManager, _amount);
     }
 
@@ -523,7 +535,8 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
     }
 
     /**
-     * @dev This is similar to a `_transfer()` followed by a `_unstake()`, but optimized to avoid spurious SSTOREs on modifying _to's checkpointed balance
+     * @dev This is similar to a `_transfer()` followed by a `_unstake()`,
+     *      but optimized to avoid spurious SSTOREs on modifying _to's checkpointed balance
      */
     function _transferAndUnstake(address _from, address _to, uint256 _amount) internal {
         // transferring 0 staked tokens is invalid
@@ -560,14 +573,17 @@ contract Staking is IERC900, IERC900History, ILockable, IApproveAndCallFallBack,
     }
 
     /**
-     * @dev If calling this from a state modifying function trying to unlock tokens, make sure the first parameter is `msg.sender`.
+     * @dev If calling this from a state modifying function trying to unlock tokens,
+     *      make sure the first parameter is `msg.sender`.
      * @param _sender Address that would try to unlock tokens
      * @param _user Owner of lock
      * @param _lockManager Lock manager
      * @param _amount Amount of locked tokens to unlock. If zero, the full locked amount.
      * @return Whether sender is allowed to unlock tokens from the given lock
      */
-    function _canUnlockUnsafe(address _sender, address _user, address _lockManager, uint256 _amount) internal view returns (bool) {
+    function _canUnlockUnsafe(address _sender, address _user, address _lockManager, uint256 _amount)
+        internal view
+        returns (bool) {
         Lock storage lock_ = accounts[_user].locks[_lockManager];
         require(lock_.allowance > 0, ERROR_LOCK_DOES_NOT_EXIST);
         require(lock_.amount >= _amount, ERROR_NOT_ENOUGH_LOCK);

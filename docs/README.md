@@ -1,4 +1,8 @@
-The Staking app complies with [interface ERC900](https://eips.ethereum.org/EIPS/eip-900) with the following added features:
+## Etherisc Global Staking Pool (GSP)
+
+For the specification of the Etherisc Governance Model (EGM) see [this doc](https://drive.google.com/file/d/1UCXrKMbHyj8c3Ucvb6OrbMz106nvbNrV/view?usp=sharing)
+
+The Etherisc Global Staking Pool (GSP) complies with [interface ERC900](https://eips.ethereum.org/EIPS/eip-900) with the following added features:
 
 - Anti-sybil protection
 - Locking-slashing mechanism
